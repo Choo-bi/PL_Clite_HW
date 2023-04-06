@@ -12,13 +12,28 @@ class Program {
         decpart = d;
         body = b;
     }
-
+    public void display(int level) {
+        for (int i = 0; i < level; i++)
+            System.out.print("\t");
+        System.out.println("AST: ");
+        decpart.display(level+ 1);
+        body.display(level + 1);
+    }
 }
 
 class Declarations extends ArrayList<Declaration> {
     // Declarations = Declaration*
     // (a list of declarations d1, d2, ..., dn)
-
+    public void display(int level) {
+        System.out.print("\t");
+        System.out.println("Declaractions: ");
+        for (int i = 0; i < level; i++)
+            System.out.print("\t");
+        System.out.print("Declaractions: {");
+        for (int i = 0; i < size(); i++)
+            get(i).display(level);
+        System.out.println("}");
+    }
 }
 
 class Declaration {
@@ -29,7 +44,9 @@ class Declaration {
     Declaration (Variable var, Type type) {
         v = var; t = type;
     } // declaration */
-
+    public void display(int level) {
+        System.out.print(" <" + t + ", " + v + "> ");
+    }
 }
 
 class Type {
@@ -49,8 +66,10 @@ class Type {
 
 abstract class Statement {
     // Statement = Skip | Block | Assignment | Conditional | Loop
-
+    public void display(int level) {
+    }
 }
+
 
 class Skip extends Statement {
 }
@@ -59,7 +78,13 @@ class Block extends Statement {
     // Block = Statement*
     //         (a Vector of members)
     public ArrayList<Statement> members = new ArrayList<Statement>();
-
+    public void display(int level) {
+        for (int i = 0; i < level; i++)
+            System.out.print("\t");
+        System.out.println("Blocks: ");
+        for (Statement st : members)
+            st.display(level);
+    }
 }
 
 class Assignment extends Statement {
@@ -71,7 +96,13 @@ class Assignment extends Statement {
         target = t;
         source = e;
     }
-
+    public void display(int level) {
+        for (int i = 0; i < level; i++)
+            System.out.print(" \t");
+        System.out.println("Assignment: ");
+        target.display(level + 1);
+        source.display(level + 1);
+    }
 }
 
 class Conditional extends Statement {
@@ -79,7 +110,7 @@ class Conditional extends Statement {
     Expression test;
     Statement thenbranch, elsebranch;
     // elsebranch == null means "if... then"
-    
+
     Conditional (Expression t, Statement tp) {
         test = t; thenbranch = tp; elsebranch = new Skip( );
     }
@@ -87,7 +118,14 @@ class Conditional extends Statement {
     Conditional (Expression t, Statement tp, Statement ep) {
         test = t; thenbranch = tp; elsebranch = ep;
     }
-    
+    public void display(int level) {
+        for (int i = 0; i < level; i++)
+            System.out.print("\t");
+        System.out.println("IfStatement:");
+        test.display(level + 1);
+        thenbranch.display(level + 1);
+        elsebranch.display(level + 1);
+    }
 }
 
 class Loop extends Statement {
@@ -98,12 +136,19 @@ class Loop extends Statement {
     Loop (Expression t, Statement b) {
         test = t; body = b;
     }
-    
+    public void display(int level) {
+        for (int i = 0; i < level; i++)
+            System.out.print("\t");
+        System.out.println("WhileStatement:");
+        test.display(level + 1);
+        body.display(level + 1);
+    }
 }
 
 abstract class Expression {
     // Expression = Variable | Value | Binary | Unary
-
+    public void display(int level) {
+    }
 }
 
 class Variable extends Expression {
@@ -120,7 +165,11 @@ class Variable extends Expression {
     }
     
     public int hashCode ( ) { return id.hashCode( ); }
-
+    public void display(int level) {
+        for (int i = 0; i < level; i++)
+            System.out.print("\t");
+        System.out.println("Variable: " + id);
+    }
 }
 
 abstract class Value extends Expression {
@@ -165,22 +214,33 @@ abstract class Value extends Expression {
 class IntValue extends Value {
     private int value = 0;
 
-    IntValue ( ) { type = Type.INT; }
+    IntValue() {
+        type = Type.INT;
+    }
 
-    IntValue (int v) { this( ); value = v; undef = false; }
+    IntValue(int v) {
+        this();
+        value = v;
+        undef = false;
+    }
 
-    int intValue ( ) {
+    int intValue() {
         assert !undef : "reference to undefined int value";
         return value;
     }
 
-    public String toString( ) {
-        if (undef)  return "undef";
+    public String toString() {
+        if (undef) return "undef";
         return "" + value;
     }
 
-}
+    public void display(int level) {
+        for (int i = 0; i < level; i++)
+            System.out.print("\t");
+        System.out.println("IntValue: " + value);
 
+    }
+}
 class BoolValue extends Value {
     private boolean value = false;
 
@@ -202,7 +262,11 @@ class BoolValue extends Value {
         if (undef)  return "undef";
         return "" + value;
     }
-
+    public void display(int level) {
+        for (int i = 0; i < level; i++)
+            System.out.print("\t");
+        System.out.println("BoolValue: " + value);
+    }
 }
 
 class CharValue extends Value {
@@ -221,7 +285,11 @@ class CharValue extends Value {
         if (undef)  return "undef";
         return "" + value;
     }
-
+    public void display(int level) {
+        for (int i = 0; i < level; i++)
+            System.out.print("\t");
+        System.out.println("CharValue: " + value);
+    }
 }
 
 class FloatValue extends Value {
@@ -240,7 +308,11 @@ class FloatValue extends Value {
         if (undef)  return "undef";
         return "" + value;
     }
-
+    public void display(int level) {
+        for (int i = 0; i < level; i++)
+            System.out.print("\t");
+        System.out.println("FloatValue: " + value);
+    }
 }
 
 class Binary extends Expression {
@@ -251,7 +323,18 @@ class Binary extends Expression {
     Binary (Operator o, Expression l, Expression r) {
         op = o; term1 = l; term2 = r;
     } // binary
+    public void display(int level) {
+        for (int i = 0; i < level; i++)
+            System.out.print("\t");
+        System.out.print("Binary: ");
+        op.display(level + 1);
+        term1.display(level + 1);
+        term2.display(level + 1);
+    }
 
+    public String toString() {
+        return ("Binary: op=" + op + "term1=" + term1 + "term2=" + term2);
+    }
 }
 
 class Unary extends Expression {
@@ -262,7 +345,13 @@ class Unary extends Expression {
     Unary (Operator o, Expression e) {
         op = o; term = e;
     } // unary
-
+    public void display(int level) {
+        for (int i = 0; i < level; i++)
+            System.out.print("\t");
+        System.out.println("Unary: ");
+        op.display(level + 1);
+        term.display(level + 1);
+    }
 }
 
 class Operator {
@@ -282,7 +371,7 @@ class Operator {
     final static String MINUS = "-";
     final static String TIMES = "*";
     final static String DIV = "/";
-    // UnaryOp = !    
+    // UnaryOp = !
     final static String NOT = "!";
     final static String NEG = "-";
     // CastOp = int | float | char
@@ -302,7 +391,7 @@ class Operator {
     final static String INT_MINUS = "INT-";
     final static String INT_TIMES = "INT*";
     final static String INT_DIV = "INT/";
-    // UnaryOp = !    
+    // UnaryOp = !
     final static String INT_NEG = "-";
     // RelationalOp = < | <= | == | != | >= | >
     final static String FLOAT_LT = "FLOAT<";
@@ -316,7 +405,7 @@ class Operator {
     final static String FLOAT_MINUS = "FLOAT-";
     final static String FLOAT_TIMES = "FLOAT*";
     final static String FLOAT_DIV = "FLOAT/";
-    // UnaryOp = !    
+    // UnaryOp = !
     final static String FLOAT_NEG = "-";
     // RelationalOp = < | <= | == | != | >= | >
     final static String CHAR_LT = "CHAR<";
@@ -337,14 +426,14 @@ class Operator {
     final static String F2I = "F2I";
     final static String C2I = "C2I";
     final static String I2C = "I2C";
-    
+
     String val;
-    
+
     Operator (String s) { val = s; }
 
     public String toString( ) { return val; }
     public boolean equals(Object obj) { return val.equals(obj); }
-    
+
     boolean BooleanOp ( ) { return val.equals(AND) || val.equals(OR); }
     boolean RelationalOp ( ) {
         return val.equals(LT) || val.equals(LE) || val.equals(EQ)
@@ -410,5 +499,8 @@ class Operator {
     final static public Operator boolMap (String op) {
         return map (boolMap, op);
     }
-
+    public void display(int level) {
+        System.out.println(val);
+    }
 }
+

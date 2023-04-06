@@ -16,6 +16,7 @@ public class Parser {
   
     private String match (TokenType t) {
         String value = token.value();
+        System.out.println(token.type() + " " + token.value());
         if (token.type().equals(t))
             token = lexer.next();
         else
@@ -60,13 +61,14 @@ public class Parser {
     private void declaration (Declarations ds) {
         // Declaration  --> Type Identifier { , Identifier } ;
         Type t = type();
-        while (token.type() == TokenType.Identifier) {
-            Variable v = new Variable(match(TokenType.Identifier));
-            ds.add(new Declaration(v, t));
-            if (token.type() == TokenType.Comma)
-                token = lexer.next();
-            else
-                break;
+        Variable v = new Variable(match(TokenType.Identifier));
+        Declaration d = new Declaration(v, t);
+        ds.add(d);
+        while(token.type().equals(TokenType.Comma)){
+            match(TokenType.Comma);
+            v = new Variable(match(TokenType.Identifier));
+            d = new Declaration(v,t);
+            ds.add(d);
         }
         match(TokenType.Semicolon);
     }
@@ -87,43 +89,36 @@ public class Parser {
         token = lexer.next();
         return t;          
     }
-  
+
     private Statement statement() {
-        // Statement --> ; | Block | Assignment | IfStatement | WhileStatement
-        Statement s = new Skip();
-        switch (token.type()) {
-            case Semicolon:
-                match(TokenType.Semicolon);
-                s = new Skip();
-                break;
-            case LeftBrace:
-                Block b = statements();
-                s = b;
-                break;
-            case Identifier:
-                Assignment a = assignment();
-                s = a;
-                break;
-            case If:
-                Conditional c = ifStatement();
-                s = c;
-                break;
-            case While:
-                Loop l = whileStatement();
-                s = l;
-                break;
-            default:
-                error("Illegal start of statement: " + token);
-                s = null;
-                break;
+        // Statement --> ; | Block | Assignment | IfStatement | WhileStatement | Call
+        Statement s=null;
+        if(token.type().equals(TokenType.Semicolon))
+            s = new Skip(); //semicolon
+        else if(token.type().equals(TokenType.LeftBrace)){
+            match(TokenType.LeftBrace);
+            s = statements();
+            match(TokenType.RightBrace);
         }
+        else if(token.type().equals(TokenType.Identifier)){
+            s = assignment();
+        }
+        else if(token.type().equals(TokenType.If)){
+            s= ifStatement();
+        }
+        else if(token.type().equals(TokenType.While)){
+            s= whileStatement();
+        }
+        else{
+            error(token.type());
+        }
+        // student exercise
         return s;
     }
   
     private Block statements () {
         // Block --> '{' Statements '}'
         Block b = new Block();
-        match(TokenType.LeftBrace);
         while(!token.type().equals(TokenType.RightBrace)) {
             Statement s = statement();
             b.members.add(s);
@@ -213,7 +208,7 @@ public class Parser {
     private Expression addition () {
         // Addition --> Term { AddOp Term }
         Expression e = term();
-        while (matches(addOps)) {
+        while (isAddOp()) {
             Operator op = new Operator(match(token.type()));
             Expression term2 = term();
             e = new Binary(op, e, term2);
@@ -265,7 +260,33 @@ public class Parser {
     }
 
     private Value literal( ) {
-        return null;  // student exercise
+        Value v = null;
+        if(token.type().equals(TokenType.FloatLiteral)){
+            v = new FloatValue(Float.parseFloat(token.value()));
+            match(TokenType.FloatLiteral);
+        }
+        else if(token.type().equals(TokenType.IntLiteral)){
+            v = new  IntValue(Integer.parseInt(token.value()));
+            match(TokenType.IntLiteral);
+
+        }
+        else if(token.type().equals(TokenType.CharLiteral)){
+            v= new CharValue((token.value().charAt(0)));
+            match(TokenType.CharLiteral);
+        }
+        else if(token.value()== "true"){
+            v = new BoolValue(true);
+            match(TokenType.True);
+        }
+        else if(token.value() == "false"){
+            v = new BoolValue(false);
+            match(TokenType.False);
+        }
+        else
+            error(token.type());
+
+        return v;
+                // student exercise
     }
   
 
@@ -318,7 +339,7 @@ public class Parser {
     public static void main(String args[]) {
         Parser parser  = new Parser(new Lexer(args[0]));
         Program prog = parser.program();
-        prog.display();           // display abstract syntax tree
+        prog.display(0);           // display abstract syntax tree
     } //main
 
 } // Parser
