@@ -26,13 +26,13 @@ class Declarations extends ArrayList<Declaration> {
     // (a list of declarations d1, d2, ..., dn)
     public void display(int level) {
         System.out.print("\t");
-        System.out.println("Declaractions: ");
+//        System.out.println("Declaractions: ");
         for (int i = 0; i < level; i++)
             System.out.print("\t");
-        System.out.print("Declaractions: {");
+//        System.out.print("Declaractions: {");
         for (int i = 0; i < size(); i++)
             get(i).display(level);
-        System.out.println("}");
+//        System.out.println("}");
     }
 }
 
@@ -45,7 +45,7 @@ class Declaration {
         v = var; t = type;
     } // declaration */
     public void display(int level) {
-        System.out.print(" <" + t + ", " + v + "> ");
+//        System.out.print(" <" + t + ", " + v + "> ");
     }
 }
 
@@ -81,7 +81,8 @@ class Block extends Statement {
     public void display(int level) {
         for (int i = 0; i < level; i++)
             System.out.print("\t");
-        System.out.println("Blocks: ");
+//        System.out.println("Blocks: ");
+        System.out.println();
         for (Statement st : members)
             st.display(level);
     }
@@ -99,7 +100,8 @@ class Assignment extends Statement {
     public void display(int level) {
         for (int i = 0; i < level; i++)
             System.out.print(" \t");
-        System.out.println("Assignment: ");
+//        System.out.println("Assignment: ");
+        System.out.println("=");
         target.display(level + 1);
         source.display(level + 1);
     }
@@ -122,6 +124,7 @@ class Conditional extends Statement {
         for (int i = 0; i < level; i++)
             System.out.print("\t");
         System.out.println("IfStatement:");
+
         test.display(level + 1);
         thenbranch.display(level + 1);
         elsebranch.display(level + 1);
@@ -168,7 +171,7 @@ class Variable extends Expression {
     public void display(int level) {
         for (int i = 0; i < level; i++)
             System.out.print("\t");
-        System.out.println("Variable: " + id);
+        System.out.println(id);
     }
 }
 
@@ -237,7 +240,7 @@ class IntValue extends Value {
     public void display(int level) {
         for (int i = 0; i < level; i++)
             System.out.print("\t");
-        System.out.println("IntValue: " + value);
+        System.out.println( value);
 
     }
 }
@@ -265,7 +268,7 @@ class BoolValue extends Value {
     public void display(int level) {
         for (int i = 0; i < level; i++)
             System.out.print("\t");
-        System.out.println("BoolValue: " + value);
+        System.out.println(value);
     }
 }
 
@@ -288,7 +291,7 @@ class CharValue extends Value {
     public void display(int level) {
         for (int i = 0; i < level; i++)
             System.out.print("\t");
-        System.out.println("CharValue: " + value);
+        System.out.println(value);
     }
 }
 
@@ -311,7 +314,7 @@ class FloatValue extends Value {
     public void display(int level) {
         for (int i = 0; i < level; i++)
             System.out.print("\t");
-        System.out.println("FloatValue: " + value);
+        System.out.println(value);
     }
 }
 
@@ -326,7 +329,7 @@ class Binary extends Expression {
     public void display(int level) {
         for (int i = 0; i < level; i++)
             System.out.print("\t");
-        System.out.print("Binary: ");
+//        System.out.print("Binary: ");
         op.display(level + 1);
         term1.display(level + 1);
         term2.display(level + 1);
@@ -348,7 +351,7 @@ class Unary extends Expression {
     public void display(int level) {
         for (int i = 0; i < level; i++)
             System.out.print("\t");
-        System.out.println("Unary: ");
+//        System.out.println("Unary: ");
         op.display(level + 1);
         term.display(level + 1);
     }

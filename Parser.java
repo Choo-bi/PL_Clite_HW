@@ -123,11 +123,11 @@ public class Parser {
             Statement s = statement();
             b.members.add(s);
         }
-        match(TokenType.RightBrace);
         return b;
     }
   
     private Assignment assignment () {
+        // Assignment --> Identifier = Expression ;
         Variable target = new Variable(match(TokenType.Identifier));
         match(TokenType.Assign);
         Expression source = expression();

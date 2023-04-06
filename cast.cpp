@@ -3,4 +3,6 @@ int main () {
    float b;
    c = 1;
    b = -float(c);
+
+
 }
