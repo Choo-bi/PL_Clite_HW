@@ -5,28 +5,59 @@ public class TypeTransformer {
     public static Program T (Program p, TypeMap tm) {
         Block body = (Block)T(p.body, tm);
         return new Program(p.decpart, body);
-    } 
+    }
 
     public static Expression T (Expression e, TypeMap tm) {
-        if (e instanceof Value) 
+        if (e instanceof Value)
             return e;
-        if (e instanceof Variable) 
+        if (e instanceof Variable)
             return e;
         if (e instanceof Binary) {
-            Binary b = (Binary)e; 
+            Binary b = (Binary)e;
             Type typ1 = StaticTypeCheck.typeOf(b.term1, tm);
             Type typ2 = StaticTypeCheck.typeOf(b.term2, tm);
             Expression t1 = T (b.term1, tm);
             Expression t2 = T (b.term2, tm);
-            if (typ1 == Type.INT) 
+            if (typ1 == Type.INT)
                 return new Binary(b.op.intMap(b.op.val), t1,t2);
-            else if (typ1 == Type.FLOAT) 
+            else if (typ1 == Type.FLOAT)
                 return new Binary(b.op.floatMap(b.op.val), t1,t2);
-            else if (typ1 == Type.CHAR) 
+            else if (typ1 == Type.CHAR)
                 return new Binary(b.op.charMap(b.op.val), t1,t2);
-            else if (typ1 == Type.BOOL) 
+            else if (typ1 == Type.BOOL) {
+                Operator bop = b.op.boolMap(b.op.val);
+                if(bop == null)
+                    return new Binary(new Operator(b.op.val),t1,t2);
                 return new Binary(b.op.boolMap(b.op.val), t1,t2);
+            }
+
             throw new IllegalArgumentException("should never reach here");
+        }
+        if(e instanceof Unary){
+            Unary u = (Unary)e;
+            Type typ = StaticTypeCheck.typeOf(u.term,tm);
+            Expression t = T(u.term, tm);
+
+            // 타입에 따라 다른 연산자 매핑
+            if (typ == Type.BOOL)
+            {
+                return new Unary(u.op.boolMap(u.op.val), t);
+            }
+            else if (typ == Type.FLOAT)
+            {
+                return new Unary(u.op.floatMap(u.op.val), t);
+            }
+            else if (typ == Type.INT)
+            {
+                return new Unary(u.op.intMap(u.op.val), t);
+            }
+            else if (typ == Type.CHAR)
+            {
+                return new Unary(u.op.charMap(u.op.val), t);
+            }
+            else {
+                throw new IllegalArgumentException("Unary Transform error");
+            }
         }
         // student exercise
         throw new IllegalArgumentException("should never reach here");
@@ -40,6 +71,7 @@ public class TypeTransformer {
             Expression src = T (a.source, tm);
             Type ttype = (Type)tm.get(a.target);
             Type srctype = StaticTypeCheck.typeOf(a.source, tm);
+
             if (ttype == Type.FLOAT) {
                 if (srctype == Type.INT) {
                     src = new Unary(new Operator(Operator.I2F), src);
@@ -53,9 +85,9 @@ public class TypeTransformer {
                 }
             }
             StaticTypeCheck.check( ttype == srctype,
-                      "bug in assignment to " + target);
+                    "bug in assignment to " + target);
             return new Assignment(target, src);
-        } 
+        }
         if (s instanceof Conditional) {
             Conditional c = (Conditional)s;
             Expression test = T (c.test, tm);
@@ -76,24 +108,23 @@ public class TypeTransformer {
                 out.members.add(T(stmt, tm));
             return out;
         }
-        throw new IllegalArgumentException("should never reach here");
+        throw new IllegalArgumentException("Statement T method error");
     }
-    
+
 
     public static void main(String args[]) {
         Parser parser  = new Parser(new Lexer(args[0]));
         Program prog = parser.program();
-        // prog.display();           // student exercise
+        prog.display(0);           // student exercise
         System.out.println("\nBegin type checking...");
         System.out.println("Type map:");
         TypeMap map = StaticTypeCheck.typing(prog.decpart);
-        // map.display();    // student exercise
+        map.display();    // student exercise
         StaticTypeCheck.V(prog);
         Program out = T(prog, map);
         System.out.println("Output AST");
-        // out.display();    // student exercise
+        out.display(0);    // student exercise
     } //main
 
-    } // class TypeTransformer
+} // class TypeTransformer
 
-    
