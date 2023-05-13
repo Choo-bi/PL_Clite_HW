@@ -20,5 +20,10 @@ public class State extends HashMap<Variable, Value> {
             put(key, t.get(key));
         return this;
     }
-
+    public void display(){
+        for(Variable key : keySet()){
+            System.out.print("<"+key+","+get(key)+">" + " ");
+        }
+        System.out.println();
+    }
 }

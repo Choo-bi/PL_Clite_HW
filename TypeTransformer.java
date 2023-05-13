@@ -37,8 +37,6 @@ public class TypeTransformer {
             Unary u = (Unary)e;
             Type typ = StaticTypeCheck.typeOf(u.term,tm);
             Expression t = T(u.term, tm);
-
-            // 타입에 따라 다른 연산자 매핑
             if (typ == Type.BOOL)
             {
                 return new Unary(u.op.boolMap(u.op.val), t);
