@@ -5,21 +5,79 @@ import java.util.*;
 
 class Program {
     // Program = Declarations decpart ; Block body
-    Declarations decpart;
-    Block body;
+    Declarations globals;
+    Functions functions;
 
     Program (Declarations d, Block b) {
-        decpart = d;
-        body = b;
+        this.globals = globals;
+        this.functions = functions;
     }
     public void display(int level) {
         for (int i = 0; i < level; i++)
             System.out.print("\t");
-        System.out.println("AST: ");
-        decpart.display(level+ 1);
-        body.display(level + 1);
+        System.out.println("Program : ");
+        gloabls.display(level+ 1);
+        functions.display(level + 1);
     }
 }
+class Functions extends ArrayList<Function> {
+    public void display(int level) {
+        for (int i = 0; i < level; i++)
+            System.out.print("\t");
+        System.out.println("Functions : ");
+        for(Function function : this){
+            function.display(level+1);
+            system.out.println();
+        }
+    }
+}
+class Function {
+    Type t;
+    String id;
+    Declarations params, locals;
+    Block body;
+
+    public Function(Type t, String id, Declarations params, Declarations locals, Block body) {
+        this.t = t;
+        this.id = id;
+        this.params = params;
+        this.locals = locals;
+        this.body = body;
+    }
+
+    public void display(int level) {
+        for (int i = 0; i < level; i++)
+            System.out.print("\t");
+        System.out.println("Function = " + id + "; Return type = " + type.getId());
+        level++;
+        for (int i = 0; i < level; i++)
+            System.out.print("\t");
+        System.out.println("Parameters : ");
+        params.display(level + 1);
+        for (int i = 0; i < level; i++)
+            System.out.print("\t");
+        System.out.println("Locals : ");
+        locals.display(level + 1);
+        body.display(level);
+    }
+}
+class Call extends Expression {
+    String name;
+    Expressions args;
+
+    Call(String name, Expressions args) {
+        this.name = name;
+        this.args = args;
+    }
+
+    public void display(int level) {
+        for (int i = 0; i < level; i++)
+            System.out.print("\t");
+        System.out.println("Call: " + name);
+        args.display(level + 1);
+    }
+}
+
 
 class Declarations extends ArrayList<Declaration> {
     // Declarations = Declaration*
@@ -45,7 +103,7 @@ class Declaration {
         v = var; t = type;
     } // declaration */
     public void display(int level) {
-//        System.out.print(" <" + t + ", " + v + "> ");
+      //  System.out.print(" <" + t + ", " + v + "> ");
     }
 }
 
@@ -55,13 +113,26 @@ class Type {
     final static Type BOOL = new Type("bool");
     final static Type CHAR = new Type("char");
     final static Type FLOAT = new Type("float");
-    // final static Type UNDEFINED = new Type("undef");
+    final static Type VOID = new Type("void");
+    final static Type UNDEFINED = new Type("undef");
     
     private String id;
 
     private Type (String t) { id = t; }
 
     public String toString ( ) { return id; }
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null || getClass() != obj.getClass())
+            return false;
+        Type other = (Type) obj;
+        return id.equals(other.id);
+    }
+
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 }
 
 abstract class Statement {
@@ -87,7 +158,25 @@ class Block extends Statement {
             st.display(level);
     }
 }
+class Prototype extends Type {
+    Declarations params; // 반환형은 Type에 의해 상속받음
+    Prototype(Type returnType, Declarations params) {
+        super(returnType.toString());
+        this.params = params;
+    }
 
+    public void display(int level) {
+        for (int i = 0; i < level; i++)
+            System.out.print("\t");
+        System.out.println("Prototype: Return type = " + this.toString());
+
+        for (int i = 0; i < level; i++)
+            System.out.print("\t");
+        System.out.println("Parameters : ");
+        params.display(level + 1);
+    }
+
+}
 class Assignment extends Statement {
     // Assignment = Variable target; Expression source
     Variable target;
@@ -147,7 +236,44 @@ class Loop extends Statement {
         body.display(level + 1);
     }
 }
+class Return extends Statement {
+    Variable target;
+    Expression result;
 
+    public Return(Variable target, Expression result) {
+        this.target = target;
+        this.result = result;
+    }
+
+    public void display(int level) {
+        super.display(level);
+        target.display(level + 1);
+        retVal.display(level + 1);
+    }
+}
+class Expressions extends ArrayList<Expression> {
+    public void display(int level) {
+        for (int i = 0; i < level; i++)
+            System.out.print("\t");
+        System.out.println("Expressions:");
+        for (Expression expression : this) {
+            expression.display(level + 1);
+        }
+    }
+}
+class Expression extends Statement {
+    private Value value;
+
+    public Expression(Value value) {
+        this.value = value;
+    }
+
+    @Override
+    public void display(int level) {
+        System.out.println("Expression :");
+        value.display(level);
+    }
+}
 abstract class Expression {
     // Expression = Variable | Value | Binary | Unary
     public void display(int level) {
@@ -202,7 +328,13 @@ abstract class Value extends Expression {
     }
 
     boolean isUndef( ) { return undef; }
+    boolean isUndefined() {
+        return undef;
+    }
 
+    boolean isUnused() {
+        return false;
+    }
     Type type ( ) { return type; }
 
     static Value mkValue (Type type) {
@@ -210,6 +342,9 @@ abstract class Value extends Expression {
         if (type == Type.BOOL) return new BoolValue( );
         if (type == Type.CHAR) return new CharValue( );
         if (type == Type.FLOAT) return new FloatValue( );
+        if(type==Type.UNDEFINED) return new UndefinedValue();
+        if(type==Type.UNUNSED) return new UnusedValue();
+
         throw new IllegalArgumentException("Illegal type in mkValue");
     }
 }
@@ -317,7 +452,24 @@ class FloatValue extends Value {
         System.out.println(value);
     }
 }
-
+class UndefinedValue extends Value {
+    UndefinedValue() {type=Type.UNDEFINED; undef=true;}
+    // display()
+    public void display(int level) {
+        for (int i = 0; i < level; i++)
+            System.out.print("\t");
+        System.out.println("UndefinedValue: " + type);
+    }
+}
+class UnusedValue extends Value {
+    UnusedValue() {type=Type.UNUSED; undef=true;}
+    // display()
+    public void display(int level) {
+        for (int i = 0; i < level; i++)
+            System.out.print("\t");
+        System.out.println("UnusedValue: " + type);
+    }
+}
 class Binary extends Expression {
 // Binary = Operator op; Expression term1, term2
     Operator op;
@@ -376,7 +528,7 @@ class Operator {
     final static String DIV = "/";
     // UnaryOp = !
     final static String NOT = "!";
-    final static String NEG = "-";
+    final static String NEG = "neg";
     // CastOp = int | float | char
     final static String INT = "int";
     final static String FLOAT = "float";
@@ -395,7 +547,7 @@ class Operator {
     final static String INT_TIMES = "INT*";
     final static String INT_DIV = "INT/";
     // UnaryOp = !
-    final static String INT_NEG = "-";
+    final static String INT_NEG = "INTNEG";
     // RelationalOp = < | <= | == | != | >= | >
     final static String FLOAT_LT = "FLOAT<";
     final static String FLOAT_LE = "FLOAT<=";
@@ -409,7 +561,7 @@ class Operator {
     final static String FLOAT_TIMES = "FLOAT*";
     final static String FLOAT_DIV = "FLOAT/";
     // UnaryOp = !
-    final static String FLOAT_NEG = "-";
+    final static String FLOAT_NEG = "FLOATNEG";
     // RelationalOp = < | <= | == | != | >= | >
     final static String CHAR_LT = "CHAR<";
     final static String CHAR_LE = "CHAR<=";
